@@ -152,3 +152,11 @@ okButton.Parent = frame
 okButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- Desabilitar dano
+character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+    character.Humanoid.Health = character.Humanoid.MaxHealth
+end)
