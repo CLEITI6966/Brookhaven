@@ -153,10 +153,71 @@ okButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
+-- Variáveis principais
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
+local godMode = false -- Começa desativado
 
--- Desabilitar dano
+-- Criar a interface de usuário do botão
+local ScreenGui = Instance.new("ScreenGui")
+local Button = Instance.new("TextButton")
+
+-- Configurar o ScreenGui e o botão
+ScreenGui.Parent = game.CoreGui -- Coloca a GUI na interface do jogador
+Button.Parent = ScreenGui
+Button.Size = UDim2.new(0, 200, 0, 50)
+Button.Position = UDim2.new(0.5, -100, 0.5, -25)
+Button.Text = "God Mode: OFF"
+Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Cor vermelha para OFF
+
+-- Função para alternar o modo god
+local function toggleGodMode()
+    godMode = not godMode
+    if godMode then
+        Button.Text = "God Mode: ON"
+        Button.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Cor verde para ON
+    else
+        Button.Text = "God Mode: OFF"
+        Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Cor vermelha para OFF
+    end
+end
+
+-- Conectar a mudança de saúde
 character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-    character.Humanoid.Health = character.Humanoid.MaxHealth
+    if godMode then
+        character.Humanoid.Health = character.Humanoid.MaxHealth
+    end
 end)
+
+-- Conectar o botão à função de alternância
+Button.MouseButton1Click:Connect(toggleGodMode)
+
+-- Função para arrastar o botão (PC e Mobile)
+local dragging = false
+local dragStart, startPos
+
+-- Função para iniciar o arrasto
+local function onInputBegan(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Button.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end
+
+-- Função para atualizar a posição do botão durante o arrasto
+local function onInputChanged(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        Button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end
+
+-- Conectar os eventos
+Button.InputBegan:Connect(onInputBegan)
+Button.InputChanged:Connect(onInputChanged)
