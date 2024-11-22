@@ -103,7 +103,7 @@ local UserInputService = game:GetService("UserInputService")
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed then
-        if input.KeyCode == Enum.KeyCode.B then -- Você pode mudar a tecla para o que preferir
+        if input.KeyCode == Enum.KeyCode.F1 then -- Você pode mudar a tecla para o que preferir
             toggleBlackHole()
         end
     end
@@ -136,7 +136,7 @@ titleLabel.Parent = frame
 local textLabel = Instance.new("TextLabel")
 textLabel.Size = UDim2.new(1, 0, 0.5, 0)
 textLabel.Position = UDim2.new(0, 0, 0.2, 0)
-textLabel.Text = "Por favor, use um teclado virtual script se você estiver no celular e aperte a tecla B para ativar. No computador, aperte a tecla B."
+textLabel.Text = "Por favor, use um teclado virtual script se você estiver no celular e aperte a tecla F1 para ativar. No computador, aperte a tecla F1."
 textLabel.TextScaled = true
 textLabel.Parent = frame
 
