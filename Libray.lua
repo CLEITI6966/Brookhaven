@@ -1,322 +1,325 @@
--- UI Library Module
-local UILibrary = {}
+local Library = {}
 
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-function UILibrary.new(title)
-    local library = {}
-    local tabs = {}
-    local activeTab = nil
+-- Configurações de estilo
+local STYLE = {
+    COLORS = {
+        PRIMARY = Color3.fromRGB(0, 120, 215),
+        SECONDARY = Color3.fromRGB(70, 70, 70),
+        ACCENT = Color3.fromRGB(255, 82, 82),
+        TEXT = Color3.fromRGB(240, 240, 240)
+    },
+    EASING = Enum.EasingStyle.Quint,
+    DURATION = 0.3
+}
+
+-- Função para criar elementos com estilos padrão
+function Library:CreateElement(props)
+    local element = Instance.new(props.Type)
+    element.Name = props.Name or "Element"
+    element.Size = props.Size or UDim2.new(0, 200, 0, 40)
+    element.Position = props.Position
+    element.AnchorPoint = props.AnchorPoint
+    element.BackgroundColor3 = props.BackgroundColor3 or STYLE.COLORS.SECONDARY
+    element.BorderSizePixel = 0
     
-    -- Main GUI Setup
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local TopBar = Instance.new("Frame")
-    local Title = Instance.new("TextLabel")
-    local CloseButton = Instance.new("TextButton")
-    local MinimizeButton = Instance.new("TextButton")
-    local TabList = Instance.new("Frame")
-    local TabListButton = Instance.new("TextButton")
-    local TabContainer = Instance.new("ScrollingFrame")
-    
-    -- GUI Properties
-    ScreenGui.Name = "UILibrary"
-    ScreenGui.Parent = game.CoreGui
-    
-    MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 400, 0, 300)
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.ClipsDescendants = true
-    
-    TopBar.Name = "TopBar"
-    TopBar.Size = UDim2.new(1, 0, 0, 30)
-    TopBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    TopBar.BorderSizePixel = 0
-    TopBar.Parent = MainFrame
-    
-    Title.Name = "Title"
-    Title.Text = title or "UI Library"
-    Title.Size = UDim2.new(1, -100, 1, 0)
-    Title.BackgroundTransparency = 1
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 14
-    Title.Parent = TopBar
-    
-    -- Close and Minimize Buttons
-    CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    CloseButton.Position = UDim2.new(1, -30, 0, 0)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.Parent = TopBar
-    
-    MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    MinimizeButton.Position = UDim2.new(1, -60, 0, 0)
-    MinimizeButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    MinimizeButton.Text = "-"
-    MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeButton.Parent = TopBar
-    
-    -- Tab System
-    TabContainer.Name = "TabContainer"
-    TabContainer.Size = UDim2.new(1, 0, 1, -30)
-    TabContainer.Position = UDim2.new(0, 0, 0, 30)
-    TabContainer.BackgroundTransparency = 1
-    TabContainer.ScrollBarThickness = 4
-    TabContainer.Parent = MainFrame
-    
-    -- Create Tab Function
-    function library:CreateTab(name)
-        local tab = {}
-        local TabFrame = Instance.new("Frame")
-        TabFrame.Name = name
-        TabFrame.Size = UDim2.new(1, 0, 1, 0)
-        TabFrame.BackgroundTransparency = 1
-        TabFrame.Visible = false
-        TabFrame.Parent = TabContainer
-        
-        -- Elements Container
-        local ElementsContainer = Instance.new("Frame")
-        ElementsContainer.Size = UDim2.new(1, -20, 1, -10)
-        ElementsContainer.Position = UDim2.new(0, 10, 0, 5)
-        ElementsContainer.BackgroundTransparency = 1
-        ElementsContainer.Parent = TabFrame
-        
-        local UIListLayout = Instance.new("UIListLayout")
-        UIListLayout.Parent = ElementsContainer
-        UIListLayout.Padding = UDim.new(0, 5)
-        
-        -- Create Toggle Function
-        function tab:CreateToggle(text, default, callback)
-            local Toggle = Instance.new("Frame")
-            local ToggleButton = Instance.new("TextButton")
-            local ToggleInner = Instance.new("Frame")
-            local ToggleDot = Instance.new("Frame")
-            local ToggleLabel = Instance.new("TextLabel")
-            
-            Toggle.Size = UDim2.new(1, 0, 0, 30)
-            Toggle.BackgroundTransparency = 1
-            Toggle.Parent = ElementsContainer
-            
-            ToggleLabel.Text = text
-            ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
-            ToggleLabel.BackgroundTransparency = 1
-            ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-            ToggleLabel.Parent = Toggle
-            
-            ToggleButton.Size = UDim2.new(0, 40, 0, 20)
-            ToggleButton.Position = UDim2.new(1, -45, 0, 5)
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            ToggleButton.BorderSizePixel = 0
-            ToggleButton.Text = ""
-            ToggleButton.Parent = Toggle
-            
-            ToggleInner.Size = UDim2.new(1, -4, 1, -4)
-            ToggleInner.Position = UDim2.new(0, 2, 0, 2)
-            ToggleInner.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            ToggleInner.BorderSizePixel = 0
-            ToggleInner.Parent = ToggleButton
-            
-            ToggleDot.Size = UDim2.new(0, 16, 0, 16)
-            ToggleDot.Position = UDim2.new(0, 0, 0, 0)
-            ToggleDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ToggleDot.BorderSizePixel = 0
-            ToggleDot.Parent = ToggleInner
-            
-            local toggled = default or false
-            local function updateToggle()
-                local goal = {
-                    Position = toggled and UDim2.new(1, -16, 0, 0) or UDim2.new(0, 0, 0, 0),
-                }
-                local goalColor = {
-                    BackgroundColor3 = toggled and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(0, 0, 0),
-                }
-                
-                TweenService:Create(ToggleDot, TweenInfo.new(0.2), goal):Play()
-                TweenService:Create(ToggleInner, TweenInfo.new(0.2), goalColor):Play()
-                
-                if callback then
-                    callback(toggled)
-                end
-            end
-            
-            ToggleButton.MouseButton1Click:Connect(function()
-                toggled = not toggled
-                updateToggle()
-            end)
-            
-            updateToggle()
-            return Toggle
-        end
-        
-        -- Create Button Function
-        function tab:CreateButton(text, callback)
-            local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(1, 0, 0, 30)
-            Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            Button.BorderSizePixel = 0
-            Button.Text = text
-            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Button.Parent = ElementsContainer
-            
-            Button.MouseButton1Click:Connect(function()
-                if callback then callback() end
-            end)
-            
-            return Button
-        end
-        
-        -- Create Textbox Function
-        function tab:CreateTextbox(placeholder, callback)
-            local Textbox = Instance.new("TextBox")
-            Textbox.Size = UDim2.new(1, 0, 0, 30)
-            Textbox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            Textbox.BorderSizePixel = 0
-            Textbox.PlaceholderText = placeholder
-            Textbox.Text = ""
-            Textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Textbox.Parent = ElementsContainer
-            
-            Textbox.FocusLost:Connect(function(enterPressed)
-                if enterPressed and callback then
-                    callback(Textbox.Text)
-                end
-            end)
-            
-            return Textbox
-        end
-        
-        -- Create Dropdown Function
-        function tab:CreateDropdown(text, options, callback)
-            local Dropdown = Instance.new("Frame")
-            local DropdownButton = Instance.new("TextButton")
-            local DropdownContainer = Instance.new("Frame")
-            local UIListLayout = Instance.new("UIListLayout")
-            
-            Dropdown.Size = UDim2.new(1, 0, 0, 30)
-            Dropdown.BackgroundTransparency = 1
-            Dropdown.Parent = ElementsContainer
-            
-            DropdownButton.Size = UDim2.new(1, 0, 0, 30)
-            DropdownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            DropdownButton.BorderSizePixel = 0
-            DropdownButton.Text = text
-            DropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            DropdownButton.Parent = Dropdown
-            
-            DropdownContainer.Size = UDim2.new(1, 0, 0, 0)
-            DropdownContainer.Position = UDim2.new(0, 0, 0, 30)
-            DropdownContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-            DropdownContainer.BorderSizePixel = 0
-            DropdownContainer.ClipsDescendants = true
-            DropdownContainer.Parent = Dropdown
-            
-            UIListLayout.Parent = DropdownContainer
-            
-            local open = false
-            
-            for _, option in ipairs(options) do
-                local OptionButton = Instance.new("TextButton")
-                OptionButton.Size = UDim2.new(1, 0, 0, 25)
-                OptionButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-                OptionButton.BorderSizePixel = 0
-                OptionButton.Text = option
-                OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-                OptionButton.Parent = DropdownContainer
-                
-                OptionButton.MouseButton1Click:Connect(function()
-                    if callback then callback(option) end
-                    DropdownButton.Text = text .. ": " .. option
-                    open = false
-                    TweenService:Create(DropdownContainer, TweenInfo.new(0.2), {
-                        Size = UDim2.new(1, 0, 0, 0)
-                    }):Play()
-                end)
-            end
-            
-            DropdownButton.MouseButton1Click:Connect(function()
-                open = not open
-                TweenService:Create(DropdownContainer, TweenInfo.new(0.2), {
-                    Size = UDim2.new(1, 0, 0, open and UIListLayout.AbsoluteContentSize.Y or 0)
-                }):Play()
-            end)
-            
-            return Dropdown
-        end
-        
-        return tab
+    if props.Text then
+        element.Text = props.Text
+        element.TextColor3 = STYLE.COLORS.TEXT
+        element.Font = Enum.Font.GothamMedium
+        element.TextSize = 14
     end
     
-    -- Dragging functionality
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
+    if props.Parent then
+        element.Parent = props.Parent
+    end
     
-    TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    -- Efeito de sombra
+    local shadow = Instance.new("UIStroke")
+    shadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    shadow.Color = Color3.new(0, 0, 0)
+    shadow.Transparency = 0.8
+    shadow.Thickness = 2
+    shadow.Parent = element
+    
+    -- Borda arredondada
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = element
+    
+    return element
+end
+
+-- Função para criar um título
+function Library:CreateTitle(props)
+    local title = self:CreateElement({
+        Type = "TextLabel",
+        Name = "Title",
+        Size = UDim2.new(1, 0, 0, 40),
+        Position = UDim2.new(0, 0, 0, 0),
+        Text = props.Text or "Title",
+        BackgroundColor3 = STYLE.COLORS.PRIMARY,
+        Parent = props.Parent
+    })
+    
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
+    title.TextColor3 = STYLE.COLORS.TEXT
+    
+    return title
+end
+
+-- Função para habilitar o arrasto de uma GUI
+function Library:EnableDrag(gui)
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = MainFrame.Position
+            startPos = gui.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
     end)
-    
-    TopBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
+
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+-- Componente Botão com Efeito de Onda
+function Library:CreateButton(props)
+    local button = self:CreateElement({
+        Type = "TextButton",
+        Name = "Button",
+        Size = UDim2.new(0, 120, 0, 40),
+        Text = props.Text or "Button",
+        Parent = props.Parent
+    })
     
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if dragging and dragInput then
-            local delta = dragInput.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    local ripple = Instance.new("Frame")
+    ripple.Name = "RippleEffect"
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+    ripple.BackgroundColor3 = Color3.new(1, 1, 1)
+    ripple.BackgroundTransparency = 0.9
+    ripple.ZIndex = 2
+    ripple.Parent = button
+    
+    local rippleCorner = Instance.new("UICorner")
+    rippleCorner.CornerRadius = UDim.new(1, 0)
+    rippleCorner.Parent = ripple
+    
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {
+            BackgroundColor3 = STYLE.COLORS.PRIMARY:Lerp(Color3.new(1,1,1), 0.1)
+        }):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.4), {
+            BackgroundColor3 = STYLE.COLORS.SECONDARY
+        }):Play()
+    end)
+    
+    button.MouseButton1Down:Connect(function(x, y)
+        local pos = button.AbsolutePosition
+        local mouse = Vector2.new(x - pos.X, y - pos.Y)
+        
+        ripple.Position = UDim2.new(0, mouse.X, 0, mouse.Y)
+        
+        TweenService:Create(ripple, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(3, 0, 3, 0),
+            BackgroundTransparency = 1
+        }):Play()
+    end)
+    
+    button.Activated:Connect(function()
+        if props.Callback then
+            props.Callback()
         end
     end)
     
-    -- Close and Minimize functionality
-    local minimized = false
+    return button
+end
+
+-- Toggle Super Animado
+function Library:CreateToggle(props)
+    local toggle = self:CreateElement({
+        Type = "Frame",
+        Name = "Toggle",
+        Size = UDim2.new(0, 60, 0, 30),
+        Parent = props.Parent
+    })
     
-    MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = minimized and UDim2.new(0, 400, 0, 30) or UDim2.new(0, 400, 0, 300)
-        }):Play()
-    end)
+    local track = self:CreateElement({
+        Type = "Frame",
+        Name = "Track",
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = STYLE.COLORS.SECONDARY,
+        Parent = toggle
+    })
     
-    CloseButton.MouseButton1Click:Connect(function()
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 400, 0, 0)
-        }):Play()
-        wait(0.3)
-        ScreenGui:Destroy()
-    end)
+    local thumb = self:CreateElement({
+        Type = "Frame",
+        Name = "Thumb",
+        Size = UDim2.new(0, 20, 0, 20),
+        Position = UDim2.new(0, 5, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Color3.new(1,1,1),
+        Parent = track
+    })
     
-    -- Keybind to toggle GUI
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.B then
-            MainFrame.Visible = not MainFrame.Visible
-            if MainFrame.Visible then
-                TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-                    Size = UDim2.new(0, 400, 0, 300)
-                }):Play()
+    thumb.UIStroke:Destroy()
+    track.UIStroke:Destroy()
+    
+    -- Efeito de brilho
+    local glow = Instance.new("ImageLabel")
+    glow.Name = "Glow"
+    glow.Size = UDim2.new(1.5, 0, 1.5, 0)
+    glow.Position = UDim2.new(-0.25, 0, -0.25, 0)
+    glow.Image = "rbxassetid://8992234271" -- ID de textura de brilho
+    glow.ImageTransparency = 1
+    glow.BackgroundTransparency = 1
+    glow.Parent = thumb
+    
+    local state = false
+    local debounce = false
+    
+    local function animate()
+        if debounce then return end
+        debounce = true
+        
+        state = not state
+        
+        local tweenInfo = TweenInfo.new(
+            STYLE.DURATION,
+            STYLE.EASING,
+            Enum.EasingDirection.Out
+        )
+        
+        local goals = {
+            ThumbPosition = state and UDim2.new(1, -25, 0.5, 0) or UDim2.new(0, 5, 0.5, 0),
+            TrackColor = state and STYLE.COLORS.PRIMARY or STYLE.COLORS.SECONDARY,
+            GlowTransparency = state and 0.5 or 1
+        }
+        
+        TweenService:Create(thumb, tweenInfo, {Position = goals.ThumbPosition}):Play()
+        TweenService:Create(track, tweenInfo, {BackgroundColor3 = goals.TrackColor}):Play()
+        TweenService:Create(glow, tweenInfo, {ImageTransparency = goals.GlowTransparency}):Play()
+        
+        task.wait(STYLE.DURATION)
+        debounce = false
+    end
+    
+    toggle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            animate()
+            if props.Callback then
+                props.Callback(state)
             end
         end
     end)
     
-    return library
+    return toggle
 end
 
-return UILibrary
+-- Dropdown com Animação de Abertura
+function Library:CreateDropdown(props)
+    local dropdown = self:CreateElement({
+        Type = "Frame",
+        Name = "Dropdown",
+        Size = UDim2.new(0, 200, 0, 40),
+        Parent = props.Parent
+    })
+    
+    local header = self:CreateElement({
+        Type = "TextButton",
+        Name = "Header",
+        Size = UDim2.new(1, 0, 0, 40),
+        Text = props.Title or "Select",
+        Parent = dropdown
+    })
+    
+    local optionsFrame = self:CreateElement({
+        Type = "ScrollingFrame",
+        Name = "Options",
+        Size = UDim2.new(1, 0, 0, 0),
+        Position = UDim2.new(0, 0, 0, 45),
+        BackgroundTransparency = 1,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        ScrollBarThickness = 3,
+        Parent = dropdown
+    })
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 5)
+    listLayout.Parent = optionsFrame
+    
+    local isOpen = false
+    
+    local function toggleDropdown()
+        isOpen = not isOpen
+        
+        TweenService:Create(optionsFrame, TweenInfo.new(STYLE.DURATION, STYLE.EASING), {
+            Size = isOpen and UDim2.new(1, 0, 0, math.min(#props.Options * 45, 200)) or UDim2.new(1, 0, 0, 0),
+            CanvasSize = isOpen and UDim2.new(0, 0, 0, #props.Options * 45) or UDim2.new(0, 0, 0, 0)
+        }):Play()
+    end
+    
+    header.MouseButton1Click:Connect(toggleDropdown)
+    
+    for _, option in pairs(props.Options) do
+        local optionButton = self:CreateButton({
+            Text = option,
+            Parent = optionsFrame,
+            Size = UDim2.new(1, -10, 0, 40),
+            Callback = function()
+                header.Text = option
+                toggleDropdown()
+                if props.Callback then
+                    props.Callback(option)
+                end
+            end
+        })
+        
+        optionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        optionButton.TextColor3 = STYLE.COLORS.TEXT
+    end
+    
+    return dropdown
+end
+
+-- Animação de Entrada da GUI
+function Library:AnimateEntrance(gui)
+    gui.Position = UDim2.new(0.5, 0, 0, -50)
+    gui.AnchorPoint = Vector2.new(0.5, 0)
+    
+    TweenService:Create(gui, TweenInfo.new(1, Enum.EasingStyle.Elastic), {
+        Position = UDim2.new(0.5, 0, 0.1, 0)
+    }):Play()
+end
+
+return Library
