@@ -57,3 +57,38 @@ distortUI()
 
 -- Inicia a simulação de efeito glitchy na câmera
 simulateDrunk()
+
+wait(0.1)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:FindFirstChild("HumanoidRootPart")
+
+if not root then return end
+
+local camera = workspace.CurrentCamera
+
+for i = 1, 20 do
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://6549021381"
+    sound.Volume = 1000
+    sound.Looped = false
+    sound.Parent = root
+    sound:Play()
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not sound.IsPlaying then
+            connection:Disconnect()
+            return
+        end
+
+        local loudness = math.clamp(sound.PlaybackLoudness / 100, 0, 5)
+        local shakeX = (math.random() - 0.5) * loudness
+        local shakeY = (math.random() - 0.5) * loudness
+        camera.CFrame = camera.CFrame * CFrame.new(shakeX, shakeY, 0)
+    end)
+end
